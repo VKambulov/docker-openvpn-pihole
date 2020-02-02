@@ -33,7 +33,7 @@ docker run --env-file=vars_easyrsa -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna
 
 echo -e "\nGenerate Google Authentificator...\n"
 sleep 1
-docker run -v $OVPN_DATA:/etc/openvpn --rm -t kylemanna/openvpn ovpn_otp_user $CLIENTNAME
+docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn ovpn_otp_user $CLIENTNAME
 
 echo -e "\nGenerate .ovpn file for $CLIENTNAME...\n"
 sleep 1
