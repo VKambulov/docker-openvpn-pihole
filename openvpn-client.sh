@@ -5,19 +5,15 @@
 OVPN_DATA=$PWD/openvpn_data
 export OVPN_DATA
 
-#Step 5
-echo -e "\nGenerate a client certificate with  a passphrase SAME AS YOU GIVE FOR SERVER...PASSPHRASE please wait...\n"
-
+echo -e "\nCreate Client...\n"
 sleep 1
-read -p "Please Provide Your Client Name " CLIENTNAME
+read -p "Please Provide Your Client Name: " CLIENTNAME
+docker run --env-file=vars_easyrsa -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full $CLIENTNAME nopass
 
-echo -e "\nI am adding a client with name $CLIENTNAME\n"
- 
-docker run -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full $CLIENTNAME nopass
+echo -e "\nGenerate Google Authentificator...\n"
+sleep 1
+docker run -v $OVPN_DATA:/etc/openvpn --rm -t kylemanna/openvpn ovpn_otp_user $CLIENTNAME
 
-#Step 6
-echo -e "\nWe are now at 6TH Step, don't worry this is last step, you lazy GUY,Now we retrieve the client configuration with embedded certificates\n"
-
+echo -e "\nGenerate .ovpn file...\n"
 echo -e "\n$CLIENTNAME ok\n"
-
 docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_getclient $CLIENTNAME > $OVPN_DATA/$CLIENTNAME.ovpn
