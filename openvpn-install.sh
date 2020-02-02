@@ -18,19 +18,19 @@ export OVPN_DATA
 echo -e "\nGenerate OpenVPN config...\n"
 # read IPv4 from Pi-Hole Container 
 PIHOLE_IP=`grep 'ipv4' docker-compose.yml | awk ' NR==2 {print $2}'`
-docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -n $PIHOLE_IP -u udp://IP 
+docker run -v $OVPN_DATA:/etc/openvpn --rm kylemanna/openvpn ovpn_genconfig -e 'auth SHA512' -n $PIHOLE_IP -u udp://IP -T "AES-256-CBC"
 # more Option: https://github.com/kylemanna/docker-openvpn/blob/master/bin/ovpn_genconfig
 
 echo -e "\nAfter a Shortwhile You need to enter your Server Secure Password details please wait ...\n"
 
 sleep 3
-echo -e "\nInit OpenVPN CA...\n"
-docker run -e EASYRSA_KEY_SIZE=4096 -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn ovpn_initpki
+echo -e "\nInit CA...\n"
+docker run --env-file=vars_easyrsa -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn ovpn_initpki
 
-echo -e "\nCreate client...\n"
+echo -e "\nCreate Client...\n"
 sleep 1
-read -p "Please Provide Your Client Name " CLIENTNAME 
-docker run -e EASYRSA_KEY_SIZE=4096 -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full $CLIENTNAME nopass
+read -p "Please Provide Your Client Name: " CLIENTNAME
+docker run --env-file=vars_easyrsa -v $OVPN_DATA:/etc/openvpn --rm -it kylemanna/openvpn easyrsa build-client-full $CLIENTNAME nopass
 
 echo -e "\nGenerate .ovpn file\n"
 echo -e "\n$CLIENTNAME ok\n"
@@ -51,7 +51,7 @@ echo -e "\nAll done!"
 
 # create a new sub-network (if not exist)
 docker network inspect vpn-net &>/dev/null || 
-    docker network create --driver=bridge --subnet=172.110.1.0/24 --gateway=172.110.1.1 vpn-net
+    docker network create --driver=bridge --subnet=172.110.1.0/24 --gateway=172.110.1.1 network
 
 # set DNSSEC=true to pihole/setupVars.conf 
 mkdir -p pihole && echo "DNSSEC=true" >> pihole/setupVars.conf
